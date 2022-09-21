@@ -71,7 +71,7 @@ class DefinitionFactory
 
         $handler = new FileHandler($file);
         $handler->traverse();
-        return $handler->definition;
+        return $handler->getDefinition();
     }
 
     /**

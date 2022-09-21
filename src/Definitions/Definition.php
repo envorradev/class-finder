@@ -24,7 +24,7 @@ use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
  */
 class Definition implements TypeDefinition
 {
-    public ?string $name = null;
+    protected ?string $name = null;
     protected NodeFinder $nodeFinder;
     protected NodeHelper $nodeHelper;
 
@@ -34,9 +34,9 @@ class Definition implements TypeDefinition
      * @param  ClassType|null  $type
      */
     public function __construct(
-        public Node $node,
-        public ?Resolver $resolver = null,
-        public ?ClassType $type = null
+        protected Node $node,
+        protected ?Resolver $resolver = null,
+        protected ?ClassType $type = null
     ) {
         $this->preInit();
         $this->applyDefaultValues();

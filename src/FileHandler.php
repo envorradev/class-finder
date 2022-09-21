@@ -25,27 +25,27 @@ class FileHandler implements NodeVisitor
     /**
      * @var array
      */
-    public array $ast = [];
+    protected array $ast = [];
     /**
      * @var TypeDefinition|null
      */
-    public ?TypeDefinition $definition = null;
+    protected ?TypeDefinition $definition = null;
     /**
      * @var Node[]
      */
-    public array $nodes = [];
+    protected array $nodes = [];
     /**
      * @var NodeTraverser
      */
-    public NodeTraverser $traverser;
+    protected NodeTraverser $traverser;
 
     /**
      * @param  SplFileInfo    $file
      * @param  Resolver|null  $resolver
      */
     public function __construct(
-        public SplFileInfo $file,
-        public ?Resolver $resolver = null,
+        protected SplFileInfo $file,
+        protected ?Resolver $resolver = null,
     ) {
         $this->resolver ??= ResolverFactory::create();
         $this->traverser = new NodeTraverser();
@@ -88,6 +88,14 @@ class FileHandler implements NodeVisitor
         }
 
         return null;
+    }
+
+    /**
+     * @return TypeDefinition|null
+     */
+    public function getDefinition(): ?TypeDefinition
+    {
+        return $this->definition;
     }
 
     /**

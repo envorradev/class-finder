@@ -9,5 +9,12 @@ namespace Envorra\ClassFinder;
  */
 class Finder
 {
+    public array $directories = [];
+
+    public function __construct()
+    {
+
+    }
+
 
 }

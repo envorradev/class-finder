@@ -21,27 +21,27 @@ class ClassResolver implements Resolver
     /**
      * @var string|null
      */
-    public ?string $name = null;
+    protected ?string $name = null;
     /**
      * @var Name|Identifier|null
      */
-    public Name|Identifier|null $nameNode = null;
+    protected Name|Identifier|null $nameNode = null;
     /**
      * @var string|null
      */
-    public ?string $namespace = null;
+    protected ?string $namespace = null;
     /**
      * @var Namespace_|null
      */
-    public ?Namespace_ $namespaceNode = null;
+    protected ?Namespace_ $namespaceNode = null;
     /**
      * @var string[]
      */
-    public array $namespaceParts = [];
+    protected array $namespaceParts = [];
     /**
      * @var array<string, UseUse>
      */
-    public array $useMap = [];
+    protected array $useMap = [];
 
     /**
      * @inheritDoc
@@ -113,6 +113,14 @@ class ClassResolver implements Resolver
     public function getNamespaceNode(): ?Namespace_
     {
         return $this->namespaceNode;
+    }
+
+    /**
+     * @return array<string, UseUse>
+     */
+    public function getUseMap(): array
+    {
+        return $this->useMap;
     }
 
     /**

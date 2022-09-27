@@ -91,7 +91,7 @@ class Finder
      */
     public function definitionFromFile(SplFileInfo $file): ?TypeDefinition
     {
-        if ($definition = DefinitionFactory::tryFromFile($file)) {
+        if ($definition = DefinitionFactory::create($file)) {
             return $this->filterDefinition($definition);
         }
         return null;

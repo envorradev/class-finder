@@ -18,7 +18,7 @@ trait HasTraits
     /**
      * @var TTrait[]
      */
-    protected array $traits = [];
+    public array $traits = [];
 
     /**
      * @param  TTrait|Name|class-string|null  $trait
@@ -26,12 +26,9 @@ trait HasTraits
      */
     public function addTrait(TraitTypeDefinition|Name|string|null $trait): static
     {
-        $trait = DefinitionFactory::tryMatchDefinitionClass(
-            from: $this->resolver->resolve($trait),
-            definitionClass: TraitTypeDefinition::class
-        );
+        $trait = DefinitionFactory::create($this->resolver->resolve($trait));
 
-        if ($trait) {
+        if ($trait instanceof TraitTypeDefinition) {
             $this->traits[] = $trait;
         }
 

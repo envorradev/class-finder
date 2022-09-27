@@ -21,15 +21,15 @@ class ClassResolver implements Resolver
     /**
      * @var string|null
      */
-    protected ?string $name = null;
+    public ?string $name = null;
     /**
      * @var Name|Identifier|null
      */
-    protected Name|Identifier|null $nameNode = null;
+    public Name|Identifier|null $nameNode = null;
     /**
      * @var string|null
      */
-    protected ?string $namespace = null;
+    public ?string $namespace = null;
     /**
      * @var Namespace_|null
      */
@@ -37,11 +37,11 @@ class ClassResolver implements Resolver
     /**
      * @var string[]
      */
-    protected array $namespaceParts = [];
+    public array $namespaceParts = [];
     /**
      * @var array<string, UseUse>
      */
-    protected array $useMap = [];
+    public array $useMap = [];
 
     /**
      * @inheritDoc

@@ -18,7 +18,7 @@ trait HasInterfaces
     /**
      * @var TInterface[]
      */
-    protected array $interfaces = [];
+    public array $interfaces = [];
 
     /**
      * @param  TInterface|Name|class-string|null  $interface
@@ -26,12 +26,9 @@ trait HasInterfaces
      */
     public function addInterface(InterfaceTypeDefinition|Name|string|null $interface): static
     {
-        $interface = DefinitionFactory::tryMatchDefinitionClass(
-            from: $this->resolver->resolve($interface),
-            definitionClass: InterfaceTypeDefinition::class
-        );
+        $interface = DefinitionFactory::create($this->resolver->resolve($interface));
 
-        if ($interface) {
+        if ($interface instanceof InterfaceTypeDefinition) {
             $this->interfaces[] = $interface;
         }
 

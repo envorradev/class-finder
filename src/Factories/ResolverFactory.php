@@ -2,6 +2,7 @@
 
 namespace Envorra\ClassFinder\Factories;
 
+use Envorra\ClassFinder\Contracts\Factory;
 use Envorra\ClassFinder\Contracts\Resolver;
 use Envorra\ClassFinder\Resolvers\ClassResolver;
 
@@ -9,14 +10,25 @@ use Envorra\ClassFinder\Resolvers\ClassResolver;
  * ResolverFactory
  *
  * @package Envorra\ClassFinder\Factories
+ *
+ * @implements Factory<Resolver>
  */
-class ResolverFactory
+class ResolverFactory implements Factory
 {
     /**
-     * @return Resolver
+     * @inheritDoc
      */
-    public static function create(): Resolver
+    public static function create(mixed $from = null): Resolver
     {
         return new ClassResolver();
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function createOrFail(mixed $from = null): Resolver
+    {
+        return static::create();
+    }
+
 }

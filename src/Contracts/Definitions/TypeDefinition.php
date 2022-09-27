@@ -3,8 +3,8 @@
 namespace Envorra\ClassFinder\Contracts\Definitions;
 
 use PhpParser\Node;
+use Envorra\ClassFinder\Enums\Type;
 use Envorra\ClassFinder\Contracts\Resolver;
-use Envorra\ClassFinder\Contracts\ClassType;
 
 /**
  * TypeDefinition
@@ -18,9 +18,9 @@ interface TypeDefinition
     /**
      * @param  TNode           $node
      * @param  Resolver|null   $resolver
-     * @param  ClassType|null  $type
+     * @param  Type|null  $type
      */
-    public function __construct(Node $node, ?Resolver $resolver = null, ?ClassType $type = null);
+    public function __construct(Node $node, ?Resolver $resolver = null, ?Type $type = null);
 
     /**
      * @return string|null
@@ -38,7 +38,7 @@ interface TypeDefinition
     public function getNamespace(): ?string;
 
     /**
-     * @return ClassType
+     * @return Type
      */
-    public function getType(): ClassType;
+    public function getType(): Type;
 }

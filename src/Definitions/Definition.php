@@ -6,11 +6,11 @@ use PhpParser\Node;
 use ReflectionClass;
 use ReflectionException;
 use PhpParser\NodeFinder;
+use Envorra\ClassFinder\Enums\Type;
 use Envorra\ClassFinder\Contracts\Resolver;
 use Envorra\ClassFinder\Helpers\NodeHelper;
-use Envorra\ClassFinder\Contracts\ClassType;
 use Envorra\ClassFinder\Factories\ResolverFactory;
-use Envorra\ClassFinder\Factories\ClassTypeFactory;
+use Envorra\ClassFinder\Factories\TypeFactory;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
 
 /**
@@ -24,19 +24,19 @@ use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
  */
 class Definition implements TypeDefinition
 {
-    protected ?string $name = null;
+    public ?string $name = null;
     protected NodeFinder $nodeFinder;
     protected NodeHelper $nodeHelper;
 
     /**
      * @param  TNode           $node
      * @param  Resolver|null   $resolver
-     * @param  ClassType|null  $type
+     * @param  Type|null  $type
      */
     public function __construct(
         protected Node $node,
-        protected ?Resolver $resolver = null,
-        protected ?ClassType $type = null
+        public ?Resolver $resolver = null,
+        public ?Type $type = null
     ) {
         $this->preInit();
         $this->applyDefaultValues();
@@ -51,6 +51,14 @@ class Definition implements TypeDefinition
     public function getFullyQualifiedName(): ?string
     {
         return $this->resolver->qualify($this->getName());
+    }
+
+    /**
+     * @return TNode
+     */
+    public function getNode(): Node
+    {
+        return $this->node;
     }
 
     /**
@@ -72,7 +80,7 @@ class Definition implements TypeDefinition
     /**
      * @inheritDoc
      */
-    public function getType(): ClassType
+    public function getType(): Type
     {
         return $this->type;
     }
@@ -83,7 +91,7 @@ class Definition implements TypeDefinition
     protected function applyDefaultValues(): void
     {
         $this->resolver ??= ResolverFactory::create();
-        $this->type ??= ClassTypeFactory::createFromNode($this->node);
+        $this->type ??= TypeFactory::create($this->node);
         $this->nodeHelper = NodeHelper::make($this->node);
         $this->nodeFinder = new NodeFinder();
     }

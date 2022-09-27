@@ -18,7 +18,7 @@ trait HasParent
     /**
      * @var TClass|null
      */
-    protected ?ClassTypeDefinition $parent = null;
+    public ?ClassTypeDefinition $parent = null;
 
     /**
      * @return TClass|null
@@ -34,12 +34,9 @@ trait HasParent
      */
     public function setParent(ClassTypeDefinition|Name|string|null $parent): static
     {
-        $parent = DefinitionFactory::tryMatchDefinitionClass(
-            from: $this->resolver->resolve($parent),
-            definitionClass: ClassTypeDefinition::class
-        );
+        $parent = DefinitionFactory::create($this->resolver->resolve($parent));
 
-        if ($parent) {
+        if ($parent instanceof ClassTypeDefinition) {
             $this->parent = $parent;
         }
 

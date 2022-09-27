@@ -6,153 +6,100 @@ use SplFileInfo;
 use ReflectionClass;
 use ReflectionException;
 use PhpParser\Node\Stmt\ClassLike;
-use Envorra\ClassFinder\FileHandler;
-use Envorra\ClassFinder\Contracts\Resolver;
-use Envorra\ClassFinder\Contracts\ClassType;
-use Envorra\ClassFinder\Definitions\Definition;
-use Envorra\ClassFinder\Definitions\EnumDefinition;
-use Envorra\ClassFinder\Definitions\ClassDefinition;
-use Envorra\ClassFinder\Definitions\TraitDefinition;
-use Envorra\ClassFinder\Definitions\AbstractDefinition;
-use Envorra\ClassFinder\Definitions\InterfaceDefinition;
+use Envorra\ClassFinder\Contracts\Factory;
+use Envorra\ClassFinder\Exceptions\FactoryException;
+use Envorra\ClassFinder\DefinitionBuilders\BuildFromFile;
+use Envorra\ClassFinder\DefinitionBuilders\BuildFromObject;
+use Envorra\ClassFinder\DefinitionBuilders\BuildFromString;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
+use Envorra\ClassFinder\DefinitionBuilders\BuildFromReflection;
+use Envorra\ClassFinder\DefinitionBuilders\BuildFromClassLikeNode;
 
 /**
  * DefinitionFactory
  *
  * @package Envorra\ClassFinder\Factories
+ *
+ * @implements Factory<TypeDefinition>
  */
-class DefinitionFactory
+class DefinitionFactory implements Factory
 {
     /**
-     * @param  ClassLike      $node
-     * @param  Resolver|null  $resolver
+     * @inheritDoc
+     */
+    public static function create(mixed $from = null): ?TypeDefinition
+    {
+        try {
+            return static::createOrFail($from);
+        } catch (FactoryException) {
+            return null;
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function createOrFail(mixed $from = null): TypeDefinition
+    {
+        return match (gettype($from)) {
+            'object' => static::fromObject($from),
+            'string' => static::fromString($from),
+            default => FactoryException::throwFailure(),
+        };
+    }
+
+    /**
+     * @param  ClassLike  $node
      * @return TypeDefinition
      */
-    public static function createFromClassLikeNode(ClassLike $node, ?Resolver $resolver = null): TypeDefinition
+    protected static function fromClassLikeNode(ClassLike $node): TypeDefinition
     {
-        $type = ClassTypeFactory::createFromNode($node);
-        $definition = static::getDefinitionClass($type);
-
-        return new $definition(
-            node: $node,
-            resolver: $resolver ?? ResolverFactory::create(),
-            type: $type
-        );
+        return BuildFromClassLikeNode::make($node);
     }
 
     /**
-     * @param  string|null  $class
-     * @return TypeDefinition|null
+     * @param  SplFileInfo  $file
+     * @return TypeDefinition
+     * @throws FactoryException
      */
-    public static function tryFromClassName(?string $class): ?TypeDefinition
+    protected static function fromFile(SplFileInfo $file): TypeDefinition
     {
-        if (!$class) {
-            return null;
-        }
-
-        try {
-            $reflection = new ReflectionClass($class);
-            return static::tryFromFileName($reflection->getFileName() ?: '');
-        } catch (ReflectionException) {
-            return null;
-        }
+        return BuildFromFile::make($file) ?? FactoryException::throwFailure();
     }
 
     /**
-     * @param  ?SplFileInfo  $file
-     * @return TypeDefinition|null
+     * @param  object  $object
+     * @return TypeDefinition
+     * @throws FactoryException
      */
-    public static function tryFromFile(?SplFileInfo $file): ?TypeDefinition
+    protected static function fromObject(object $object): TypeDefinition
     {
-        if (!$file) {
-            return null;
-        }
-
-        $handler = new FileHandler($file);
-        $handler->traverse();
-        return $handler->getDefinition();
-    }
-
-    /**
-     * @param  ?string  $fileName
-     * @return TypeDefinition|null
-     */
-    public static function tryFromFileName(?string $fileName): ?TypeDefinition
-    {
-        if (!$fileName) {
-            return null;
-        }
-
-        $file = new SplFileInfo($fileName);
-
-        if (!$file->isFile()) {
-            return null;
-        }
-
-        return static::tryFromFile($file);
-    }
-
-    /**
-     * @param  ?object  $object
-     * @return TypeDefinition|null
-     */
-    public static function tryFromObject(?object $object): ?TypeDefinition
-    {
-        if (!$object) {
-            return null;
-        }
-
-        return static::tryFromClassName($object::class);
-    }
-
-    /**
-     * @template TType of TypeDefinition
-     *
-     * @param  mixed                $from
-     * @param  class-string<TType>  $definitionClass
-     * @return TType|null
-     */
-    public static function tryMatchDefinitionClass(mixed $from, string $definitionClass): ?TypeDefinition
-    {
-        if (!$from) {
-            return null;
-        }
-
-        if ($from instanceof $definitionClass && $from instanceof TypeDefinition) {
-            return $from;
-        }
-
-//        dump(gettype($from));
-//        dump($from);
-//        return null;
-
-        $definition = match (gettype($from)) {
-            'object' => $from instanceof SplFileInfo ? static::tryFromFile($from) : null,
-            'string' => static::tryFromClassName($from) ?? static::tryFromFileName($from),
-            default => null,
+        return match (true) {
+            $object instanceof TypeDefinition => $object,
+            $object instanceof ClassLike => static::fromClassLikeNode($object),
+            $object instanceof SplFileInfo => static::fromFile($object),
+            $object instanceof ReflectionClass => static::fromReflection($object),
+            default => BuildFromObject::make($object) ?? FactoryException::throwFailure(),
         };
-
-        if ($definition instanceof $definitionClass && $definition instanceof TypeDefinition) {
-            return $definition;
-        }
-
-        return null;
     }
 
     /**
-     * @param  ClassType  $type
-     * @return class-string<TypeDefinition>
+     * @param  ReflectionClass  $reflection
+     * @return TypeDefinition
+     * @throws FactoryException
      */
-    protected static function getDefinitionClass(ClassType $type): string
+    protected static function fromReflection(ReflectionClass $reflection): TypeDefinition
     {
-        return match (strtoupper($type->getShortName())) {
-            'CLASS' => ClassDefinition::class,
-            'ABSTRACT' => AbstractDefinition::class,
-            'INTERFACE' => InterfaceDefinition::class,
-            'ENUM' => EnumDefinition::class,
-            'TRAIT' => TraitDefinition::class,
-            default => Definition::class,
-        };
+        return BuildFromReflection::make($reflection) ?? FactoryException::throwFailure();
+    }
+
+    /**
+     * @param  string  $string
+     * @return TypeDefinition
+     * @throws FactoryException
+     */
+    protected static function fromString(string $string): TypeDefinition
+    {
+        return BuildFromString::make($string) ?? FactoryException::throwFailure();
     }
 }

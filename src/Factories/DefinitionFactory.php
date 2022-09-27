@@ -4,7 +4,6 @@ namespace Envorra\ClassFinder\Factories;
 
 use SplFileInfo;
 use ReflectionClass;
-use ReflectionException;
 use PhpParser\Node\Stmt\ClassLike;
 use Envorra\ClassFinder\Contracts\Factory;
 use Envorra\ClassFinder\Exceptions\FactoryException;

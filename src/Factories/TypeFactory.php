@@ -21,7 +21,7 @@ class TypeFactory implements Factory
      */
     public static function create(mixed $from = null): Type
     {
-        return match(true) {
+        return match (true) {
             $from instanceof Node => static::createFromNode($from),
             $from instanceof ReflectionClass => static::createFromReflection($from),
             is_object($from) => static::createFromObject($from),
@@ -39,6 +39,23 @@ class TypeFactory implements Factory
         return static::create($from);
     }
 
+    /**
+     * @param  string  $name
+     * @return Type
+     */
+    protected static function createFromName(string $name): Type
+    {
+        return Type::fromName($name);
+    }
+
+    /**
+     * @param  Node  $node
+     * @return Type
+     */
+    protected static function createFromNode(Node $node): Type
+    {
+        return Type::fromNode($node);
+    }
 
     /**
      * @param  object  $object
@@ -63,24 +80,6 @@ class TypeFactory implements Factory
             $reflection->isEnum() => Type::TYPE_ENUM,
             default => $reflection->isAbstract() ? Type::TYPE_ABSTRACT : Type::TYPE_CLASS,
         };
-    }
-
-    /**
-     * @param  string  $name
-     * @return Type
-     */
-    protected static function createFromName(string $name): Type
-    {
-        return Type::fromName($name);
-    }
-
-    /**
-     * @param  Node  $node
-     * @return Type
-     */
-    protected static function createFromNode(Node $node): Type
-    {
-        return Type::fromNode($node);
     }
 
     /**

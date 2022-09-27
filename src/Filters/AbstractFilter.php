@@ -7,7 +7,7 @@ use Envorra\ClassFinder\Contracts\Filter;
 /**
  * AbstractFilter
  *
- * @package Envorra\ClassFinder\Filters
+ * @package  Envorra\ClassFinder\Filters
  *
  * @template T
  *
@@ -20,7 +20,7 @@ abstract class AbstractFilter implements Filter
      */
     public function filter(mixed $incoming): bool
     {
-        if($this->shouldFilter($incoming)) {
+        if ($this->shouldFilter($incoming)) {
             return $this->handle($incoming);
         }
         return true;

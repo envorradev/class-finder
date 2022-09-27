@@ -11,7 +11,15 @@ use Exception;
  */
 class FactoryException extends Exception
 {
-    public static function throwFailure()
+    /**
+     * @return mixed
+     * @throws FactoryException
+     */
+    /**
+     * @return mixed
+     * @throws FactoryException
+     */
+    public static function throwFailure(): mixed
     {
         throw new self('Could not create a definition class');
     }

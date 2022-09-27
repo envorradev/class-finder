@@ -7,7 +7,7 @@ use Envorra\ClassFinder\Exceptions\FactoryException;
 /**
  * Factory
  *
- * @package Envorra\ClassFinder\Contracts
+ * @package  Envorra\ClassFinder\Contracts
  *
  * @template T
  */

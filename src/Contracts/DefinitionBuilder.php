@@ -13,13 +13,13 @@ use Envorra\ClassFinder\Exceptions\DefinitionBuilderException;
 interface DefinitionBuilder
 {
     /**
-     * @return TypeDefinition|null
-     */
-    public function getDefinition(): ?TypeDefinition;
-
-    /**
      * @return $this
      * @throws DefinitionBuilderException
      */
     public function build(): self;
+
+    /**
+     * @return TypeDefinition|null
+     */
+    public function getDefinition(): ?TypeDefinition;
 }

@@ -29,48 +29,6 @@ final class BuildFromString implements DefinitionBuilder
 
     }
 
-
-    /**
-     * @inheritDoc
-     */
-    public function getDefinition(): ?TypeDefinition
-    {
-        if(!isset($this->definition)) {
-            try {
-                $this->build();
-            } catch (DefinitionBuilderException) {
-                return null;
-            }
-        }
-        return $this->definition;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function build(): self
-    {
-        $file = new SplFileInfo($this->string);
-
-        if($file->isFile()) {
-            $this->definition = BuildFromFile::make($file);
-        } else {
-            try {
-                $reflection = new ReflectionClass($this->string);
-
-                if($reflection->isInternal()) {
-                    $this->definition = BuildFromReflection::make($reflection);
-                } else {
-                    $this->definition = BuildFromFile::make(new SplFileInfo($reflection->getFileName()));
-                }
-            } catch (ReflectionException) {
-                throw new DefinitionBuilderException('Given string cannot be converted to a valid definition');
-            }
-        }
-
-        return $this;
-    }
-
     /**
      * @param  string  $string
      * @return static
@@ -87,5 +45,46 @@ final class BuildFromString implements DefinitionBuilder
     public static function make(string $string): ?TypeDefinition
     {
         return self::instance($string)->getDefinition();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function build(): self
+    {
+        $file = new SplFileInfo($this->string);
+
+        if ($file->isFile()) {
+            $this->definition = BuildFromFile::make($file);
+        } else {
+            try {
+                $reflection = new ReflectionClass($this->string);
+
+                if ($reflection->isInternal()) {
+                    $this->definition = BuildFromReflection::make($reflection);
+                } else {
+                    $this->definition = BuildFromFile::make(new SplFileInfo($reflection->getFileName()));
+                }
+            } catch (ReflectionException) {
+                throw new DefinitionBuilderException('Given string cannot be converted to a valid definition');
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefinition(): ?TypeDefinition
+    {
+        if (!isset($this->definition)) {
+            try {
+                $this->build();
+            } catch (DefinitionBuilderException) {
+                return null;
+            }
+        }
+        return $this->definition;
     }
 }

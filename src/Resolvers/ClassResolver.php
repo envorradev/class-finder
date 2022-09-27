@@ -31,10 +31,6 @@ class ClassResolver implements Resolver
      */
     public ?string $namespace = null;
     /**
-     * @var Namespace_|null
-     */
-    protected ?Namespace_ $namespaceNode = null;
-    /**
      * @var string[]
      */
     public array $namespaceParts = [];
@@ -42,6 +38,10 @@ class ClassResolver implements Resolver
      * @var array<string, UseUse>
      */
     public array $useMap = [];
+    /**
+     * @var Namespace_|null
+     */
+    protected ?Namespace_ $namespaceNode = null;
 
     /**
      * @inheritDoc

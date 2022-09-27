@@ -11,7 +11,7 @@ use IteratorAggregate;
 /**
  * SimpleCollection
  *
- * @package Envorra\ClassFinder\Collections
+ * @package  Envorra\ClassFinder\Collections
  *
  * @template TKey of array-key
  * @template TItem
@@ -46,11 +46,37 @@ class SimpleCollection implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * @return TItem|null
+     */
+    public function first(): mixed
+    {
+        return $this->offsetGet(0);
+    }
+
+    /**
      * @inheritDoc
      */
     public function getIterator(): Traversable
     {
         return new ArrayIterator($this->items);
+    }
+
+    /**
+     * @return TItem|null
+     */
+    public function last(): mixed
+    {
+        $items = $this->items;
+        return end($items);
+    }
+
+    /**
+     * @param  int  $nth
+     * @return TItem|null
+     */
+    public function nth(int $nth): mixed
+    {
+        return $this->offsetGet($nth);
     }
 
     /**
@@ -99,32 +125,6 @@ class SimpleCollection implements ArrayAccess, Countable, IteratorAggregate
             $this->items[] = $item;
         }
         return $this;
-    }
-
-    /**
-     * @return TItem|null
-     */
-    public function first(): mixed
-    {
-        return $this->offsetGet(0);
-    }
-
-    /**
-     * @param  int  $nth
-     * @return TItem|null
-     */
-    public function nth(int $nth): mixed
-    {
-        return $this->offsetGet($nth);
-    }
-
-    /**
-     * @return TItem|null
-     */
-    public function last(): mixed
-    {
-        $items = $this->items;
-        return end($items);
     }
 }
 

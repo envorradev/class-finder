@@ -28,18 +28,21 @@ final class BuildFromObject implements DefinitionBuilder
     }
 
     /**
-     * @inheritDoc
+     * @param  object  $object
+     * @return static
      */
-    public function getDefinition(): ?TypeDefinition
+    public static function instance(object $object): self
     {
-        if(!isset($this->definition)) {
-            try {
-                $this->build();
-            } catch (DefinitionBuilderException) {
-                return null;
-            }
-        }
-        return $this->definition;
+        return new self($object);
+    }
+
+    /**
+     * @param  object  $object
+     * @return TypeDefinition|null
+     */
+    public static function make(object $object): ?TypeDefinition
+    {
+        return self::instance($object)->getDefinition();
     }
 
     /**
@@ -47,12 +50,27 @@ final class BuildFromObject implements DefinitionBuilder
      */
     public function build(): self
     {
-        if($this->reflectionClass->isInternal()) {
+        if ($this->reflectionClass->isInternal()) {
             $this->definition = $this->buildFromReflection();
         } else {
             $this->definition = $this->buildFromFile();
         }
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDefinition(): ?TypeDefinition
+    {
+        if (!isset($this->definition)) {
+            try {
+                $this->build();
+            } catch (DefinitionBuilderException) {
+                return null;
+            }
+        }
+        return $this->definition;
     }
 
     /**
@@ -76,27 +94,9 @@ final class BuildFromObject implements DefinitionBuilder
      */
     protected function getFile(): ?SplFileInfo
     {
-        if($this->reflectionClass->isUserDefined()) {
+        if ($this->reflectionClass->isUserDefined()) {
             return new SplFileInfo($this->reflectionClass->getFileName());
         }
         return null;
-    }
-
-    /**
-     * @param  object  $object
-     * @return TypeDefinition|null
-     */
-    public static function make(object $object): ?TypeDefinition
-    {
-        return self::instance($object)->getDefinition();
-    }
-
-    /**
-     * @param  object  $object
-     * @return static
-     */
-    public static function instance(object $object): self
-    {
-        return new self($object);
     }
 }

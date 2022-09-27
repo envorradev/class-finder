@@ -10,7 +10,7 @@ use PhpParser\Node\Stmt\ClassLike;
  *
  * @package Envorra\ClassFinder\Contracts
  *
- * @property Resolver $resolver
+ * @property Resolver  $resolver
  * @property ClassLike $classLikeNode
  */
 interface Visitor extends NodeVisitor

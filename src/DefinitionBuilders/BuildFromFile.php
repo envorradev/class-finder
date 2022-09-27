@@ -2,7 +2,8 @@
 
 namespace Envorra\ClassFinder\DefinitionBuilders;
 
-use PhpParser\NodeVisitor;
+use SplFileInfo;
+use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\Stmt\GroupUse;
@@ -14,10 +15,7 @@ use Envorra\ClassFinder\Contracts\Visitor;
 use Envorra\ClassFinder\Contracts\Resolver;
 use Envorra\ClassFinder\Factories\ResolverFactory;
 use Envorra\ClassFinder\Contracts\DefinitionBuilder;
-use SplFileInfo;
-use Envorra\ClassFinder\Factories\DefinitionFactory;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
-use PhpParser\Node;
 use Envorra\ClassFinder\Exceptions\DefinitionBuilderException;
 
 /**
@@ -31,14 +29,11 @@ final class BuildFromFile implements DefinitionBuilder
      * @var TypeDefinition
      */
     protected TypeDefinition $definition;
-
+    protected NodeTraverser $nodeTraverser;
     /**
      * @var Node[]
      */
     protected array $nodes = [];
-
-    protected NodeTraverser $nodeTraverser;
-
     protected Visitor $visitor;
 
     /**
@@ -83,12 +78,21 @@ final class BuildFromFile implements DefinitionBuilder
     }
 
     /**
-     * @return $this
+     * @param  SplFileInfo  $file
+     * @return static
      */
-    protected function traverse(): self
+    public static function instance(SplFileInfo $file): self
     {
-        $this->nodes = $this->nodeTraverser->traverse(CodeParser::parseFile($this->file));
-        return $this;
+        return new self($file);
+    }
+
+    /**
+     * @param  SplFileInfo  $file
+     * @return TypeDefinition|null
+     */
+    public static function make(SplFileInfo $file): ?TypeDefinition
+    {
+        return self::instance($file)->getDefinition();
     }
 
     /**
@@ -106,7 +110,7 @@ final class BuildFromFile implements DefinitionBuilder
      */
     public function getDefinition(): ?TypeDefinition
     {
-        if(!isset($this->definition)) {
+        if (!isset($this->definition)) {
             try {
                 $this->build();
             } catch (DefinitionBuilderException) {
@@ -117,20 +121,11 @@ final class BuildFromFile implements DefinitionBuilder
     }
 
     /**
-     * @param  SplFileInfo  $file
-     * @return static
+     * @return $this
      */
-    public static function instance(SplFileInfo $file): self
+    protected function traverse(): self
     {
-        return new self($file);
-    }
-
-    /**
-     * @param  SplFileInfo  $file
-     * @return TypeDefinition|null
-     */
-    public static function make(SplFileInfo $file): ?TypeDefinition
-    {
-        return self::instance($file)->getDefinition();
+        $this->nodes = $this->nodeTraverser->traverse(CodeParser::parseFile($this->file));
+        return $this;
     }
 }

@@ -16,9 +16,9 @@ use Envorra\ClassFinder\Contracts\Resolver;
 interface TypeDefinition
 {
     /**
-     * @param  TNode           $node
-     * @param  Resolver|null   $resolver
-     * @param  Type|null  $type
+     * @param  TNode          $node
+     * @param  Resolver|null  $resolver
+     * @param  Type|null      $type
      */
     public function __construct(Node $node, ?Resolver $resolver = null, ?Type $type = null);
 

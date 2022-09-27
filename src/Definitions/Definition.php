@@ -9,8 +9,8 @@ use PhpParser\NodeFinder;
 use Envorra\ClassFinder\Enums\Type;
 use Envorra\ClassFinder\Contracts\Resolver;
 use Envorra\ClassFinder\Helpers\NodeHelper;
-use Envorra\ClassFinder\Factories\ResolverFactory;
 use Envorra\ClassFinder\Factories\TypeFactory;
+use Envorra\ClassFinder\Factories\ResolverFactory;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
 
 /**
@@ -29,9 +29,9 @@ class Definition implements TypeDefinition
     protected NodeHelper $nodeHelper;
 
     /**
-     * @param  TNode           $node
-     * @param  Resolver|null   $resolver
-     * @param  Type|null  $type
+     * @param  TNode          $node
+     * @param  Resolver|null  $resolver
+     * @param  Type|null      $type
      */
     public function __construct(
         protected Node $node,
@@ -54,14 +54,6 @@ class Definition implements TypeDefinition
     }
 
     /**
-     * @return TNode
-     */
-    public function getNode(): Node
-    {
-        return $this->node;
-    }
-
-    /**
      * @inheritDoc
      */
     public function getName(): ?string
@@ -75,6 +67,14 @@ class Definition implements TypeDefinition
     public function getNamespace(): ?string
     {
         return $this->resolver->getNamespace();
+    }
+
+    /**
+     * @return TNode
+     */
+    public function getNode(): Node
+    {
+        return $this->node;
     }
 
     /**

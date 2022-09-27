@@ -5,7 +5,7 @@ namespace Envorra\ClassFinder\Contracts;
 /**
  * Filter
  *
- * @package Envorra\ClassFinder\Contracts
+ * @package  Envorra\ClassFinder\Contracts
  *
  * @template T
  */

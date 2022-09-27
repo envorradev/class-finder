@@ -2,8 +2,6 @@
 
 namespace Envorra\ClassFinder\Collections;
 
-use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
-
 /**
  * DefinitionCollection
  *

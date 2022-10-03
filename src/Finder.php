@@ -26,11 +26,11 @@ class Finder
     protected array $traversed = [];
 
     /**
-     * @param  SplFileInfo[]       $directories
+     * @param  SplFileInfo[]                 $directories
      * @param  FileFilter[]|Closure[]        $fileFilters
      * @param  DefinitionFilter[]|Closure[]  $definitionFilters
-     * @param  bool              $recursive
-     * @param  bool              $deferred
+     * @param  bool                          $recursive
+     * @param  bool                          $deferred
      */
     public function __construct(
         public readonly array $directories = [],
@@ -41,7 +41,7 @@ class Finder
     ) {
         $this->collector = new Collector();
 
-        if(!$this->deferred) {
+        if (!$this->deferred) {
             $this->scan();
         }
     }
@@ -59,23 +59,27 @@ class Finder
     }
 
     /**
+     * @return array
+     */
+    public function getClassNames(): array
+    {
+        return $this->collector->getClasses();
+    }
+
+    /**
+     * @return array
+     */
+    public function getClasses(): array
+    {
+        return $this->collector->getDefinitions();
+    }
+
+    /**
      * @return Collector
      */
     public function getCollector(): Collector
     {
         return $this->collector;
-    }
-
-    /**
-     * @return void
-     */
-    public function scan(): void
-    {
-        foreach ($this->directories as $directory) {
-            if ($directory->getFilename() !== '..') {
-                $this->traverseDirectory($directory);
-            }
-        }
     }
 
     /**
@@ -103,6 +107,24 @@ class Finder
     }
 
     /**
+     * @param  TypeDefinition|string  $class
+     * @return array
+     */
+    public function getSubClassNames(TypeDefinition|string $class): array
+    {
+        return $this->collector->getSubClassNames($class);
+    }
+
+    /**
+     * @param  TypeDefinition|string  $class
+     * @return array
+     */
+    public function getSubClasses(TypeDefinition|string $class): array
+    {
+        return $this->collector->getSubClasses($class);
+    }
+
+    /**
      * @return array
      */
     public function getTraversed(): array
@@ -119,6 +141,18 @@ class Finder
     }
 
     /**
+     * @return void
+     */
+    public function scan(): void
+    {
+        foreach ($this->directories as $directory) {
+            if ($directory->getFilename() !== '..') {
+                $this->traverseDirectory($directory);
+            }
+        }
+    }
+
+    /**
      * @param  TypeDefinition|SplFileInfo  $item
      * @param  string                      $type
      * @return TypeDefinition|SplFileInfo|null
@@ -128,12 +162,12 @@ class Finder
         if ($type === self::DEFINITION_FILTER || $type === self::FILE_FILTER) {
             /** @var Filter|Closure $filter */
             foreach ($this->$type as $filter) {
-                if($filter instanceof Filter) {
+                if ($filter instanceof Filter) {
                     if (!$filter->filter($item)) {
                         return null;
                     }
                 } else {
-                    if(!$filter($item)) {
+                    if (!$filter($item)) {
                         return null;
                     }
                 }

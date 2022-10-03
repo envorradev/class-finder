@@ -2,7 +2,6 @@
 
 namespace Envorra\ClassFinder;
 
-use Ramsey\Uuid\Uuid;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
 
 /**
@@ -12,13 +11,11 @@ use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
  */
 class Collector
 {
-    /** @var array<string, TypeDefinition> */
-    protected array $definitions = [];
-
-    /** @var array<string, class-string> */
+    /** @var class-string[] */
     protected array $classes = [];
-
-    /** @var array<class-string, string[]> */
+    /** @var array<class-string, TypeDefinition> */
+    protected array $definitions = [];
+    /** @var array<class-string, class-string[]> */
     protected array $relativeMap = [];
 
     /**
@@ -27,10 +24,10 @@ class Collector
      */
     public function collect(?TypeDefinition $definition): static
     {
-        if(!is_null($definition)) {
-            $uuid = $this->addDefinition($definition);
-            $this->classes[$uuid] = $definition->getFullyQualifiedName();
-            $this->addRelatives($definition, $uuid);
+        if (!is_null($definition)) {
+            $this->addDefinition($definition);
+            $this->addClass($definition->getFullyQualifiedName());
+            $this->addToRelativeMap($definition);
         }
         return $this;
     }
@@ -60,63 +57,73 @@ class Collector
     }
 
     /**
-     * @param  TypeDefinition  $definition
-     * @param  string|null     $uuid
+     * @param  TypeDefinition|string  $class
+     * @return array
+     */
+    public function getSubClassNames(TypeDefinition|string $class): array
+    {
+        if (!is_string($class)) {
+            $class = $class->getFullyQualifiedName();
+        }
+
+        return $this->relativeMap[$class] ?? [];
+    }
+
+    /**
+     * @param  TypeDefinition|string  $class
+     * @return array
+     */
+    public function getSubClasses(TypeDefinition|string $class): array
+    {
+        $definitions = [];
+
+        foreach ($this->getSubClassNames($class) as $className) {
+            if (array_key_exists($className, $this->definitions)) {
+                $definitions[] = $this->definitions[$className];
+            }
+        }
+
+        return $definitions;
+    }
+
+    /**
+     * @param  string  $class
      * @return void
      */
-    protected function addRelatives(TypeDefinition $definition, ?string $uuid): void
+    protected function addClass(string $class): void
     {
-        $uuid ??= $this->getDefinitionUuid($definition) ?? $this->newUuid();
-
-        foreach($definition->getRelatives() as $relative) {
-            $this->addRelative($relative, $uuid);
+        if (!in_array($class, $this->classes)) {
+            $this->classes[] = $class;
         }
     }
 
     /**
-     * @param  TypeDefinition  $relative
-     * @param  string          $collectedUuid
+     * @param  TypeDefinition  $definition
      * @return void
      */
-    protected function addRelative(TypeDefinition $relative, string $collectedUuid): void
+    protected function addDefinition(TypeDefinition $definition): void
     {
-        $class = $relative->getFullyQualifiedName();
+        $this->definitions[$definition->getFullyQualifiedName()] = $definition;
+    }
 
-        if(!array_key_exists($class, $this->relativeMap)) {
+    /**
+     * @param  TypeDefinition  $definition
+     * @param  array           $previous
+     * @return void
+     */
+    protected function addToRelativeMap(TypeDefinition $definition, array $previous = []): void
+    {
+        $class = $definition->getFullyQualifiedName();
+        if (!array_key_exists($class, $this->relativeMap)) {
             $this->relativeMap[$class] = [];
         }
 
-        $this->relativeMap[$class][] = $collectedUuid;
-    }
-
-    /**
-     * @param  TypeDefinition  $definition
-     * @return string
-     */
-    protected function addDefinition(TypeDefinition $definition): string
-    {
-        $uuid = $this->getDefinitionUuid($definition) ?? $this->newUuid();
-        $this->definitions[$uuid] = $definition;
-        return $uuid;
-    }
-
-    /**
-     * @param  TypeDefinition  $definition
-     * @return string|null
-     */
-    public function getDefinitionUuid(TypeDefinition $definition): ?string
-    {
-        if(in_array($definition, $this->definitions)) {
-            return array_search($definition, $this->definitions);
+        if (!empty($previous)) {
+            $this->relativeMap[$class] = array_values(array_unique(array_merge($previous, $this->relativeMap[$class])));
         }
-        return null;
-    }
 
-    /**
-     * @return string
-     */
-    protected function newUuid(): string
-    {
-        return Uuid::uuid4()->toString();
+        foreach ($definition->getRelatives() as $relative) {
+            $this->addToRelativeMap($relative, array_merge([$class], $previous));
+        }
     }
 }

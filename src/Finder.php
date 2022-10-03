@@ -121,7 +121,16 @@ class Finder
      */
     public function getSubClasses(TypeDefinition|string $class): array
     {
-        return $this->collector->getSubClasses($class);
+        $definitions = [];
+
+        /** @var TypeDefinition $definition */
+        foreach($this->collector->getSubClasses($class) as $definition) {
+            if($definition = $this->filter($definition, self::DEFINITION_FILTER)) {
+                $definitions[] = $definition;
+            }
+        }
+
+        return $definitions;
     }
 
     /**

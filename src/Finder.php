@@ -18,9 +18,6 @@ use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
  */
 class Finder
 {
-    protected const DEFINITION_FILTER = 'definitionFilters';
-    protected const FILE_FILTER = 'fileFilters';
-
     protected Collector $collector;
     /** @var SplFileInfo[] */
     protected array $traversed = [];
@@ -53,7 +50,7 @@ class Finder
     public function definitionFromFile(SplFileInfo $file): ?TypeDefinition
     {
         if ($definition = DefinitionFactory::create($file)) {
-            return $this->filterDefinition($definition);
+            return $this->filter($definition);
         }
         return null;
     }
@@ -125,7 +122,7 @@ class Finder
 
         /** @var TypeDefinition $definition */
         foreach($this->collector->getSubClasses($class) as $definition) {
-            if($definition = $this->filter($definition, self::DEFINITION_FILTER)) {
+            if($definition = $this->filter($definition)) {
                 $definitions[] = $definition;
             }
         }
@@ -163,44 +160,25 @@ class Finder
 
     /**
      * @param  TypeDefinition|SplFileInfo  $item
-     * @param  string                      $type
      * @return TypeDefinition|SplFileInfo|null
      */
-    protected function filter(TypeDefinition|SplFileInfo $item, string $type): TypeDefinition|SplFileInfo|null
+    protected function filter(TypeDefinition|SplFileInfo $item): TypeDefinition|SplFileInfo|null
     {
-        if ($type === self::DEFINITION_FILTER || $type === self::FILE_FILTER) {
-            /** @var Filter|Closure $filter */
-            foreach ($this->$type as $filter) {
-                if ($filter instanceof Filter) {
-                    if (!$filter->filter($item)) {
-                        return null;
-                    }
-                } else {
-                    if (!$filter($item)) {
-                        return null;
-                    }
+        $type = $item instanceof TypeDefinition ? 'definitionFilters' : 'fileFilters';
+
+        /** @var Filter|Closure $filter */
+        foreach ($this->$type as $filter) {
+            if ($filter instanceof Filter) {
+                if (!$filter->filter($item)) {
+                    return null;
+                }
+            } else {
+                if (!$filter($item)) {
+                    return null;
                 }
             }
         }
         return $item;
-    }
-
-    /**
-     * @param  TypeDefinition  $definition
-     * @return TypeDefinition|null
-     */
-    protected function filterDefinition(TypeDefinition $definition): ?TypeDefinition
-    {
-        return $this->filter($definition, self::DEFINITION_FILTER);
-    }
-
-    /**
-     * @param  SplFileInfo  $file
-     * @return SplFileInfo|null
-     */
-    protected function filterFile(SplFileInfo $file): ?SplFileInfo
-    {
-        return $this->filter($file, self::FILE_FILTER);
     }
 
     /**
@@ -218,7 +196,7 @@ class Finder
                     $this->traverseDirectory($item);
                 }
 
-                if ($item->isFile() && $this->filterFile($item)) {
+                if ($item->isFile() && $this->filter($item)) {
                     $this->collector->collect($this->definitionFromFile($item));
                 }
             }

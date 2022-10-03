@@ -2,13 +2,13 @@
 
 namespace Envorra\ClassFinder;
 
+use Closure;
 use SplFileInfo;
 use DirectoryIterator;
 use Envorra\ClassFinder\Contracts\Filter;
 use Envorra\ClassFinder\Contracts\FileFilter;
 use Envorra\ClassFinder\Contracts\DefinitionFilter;
 use Envorra\ClassFinder\Factories\DefinitionFactory;
-use Envorra\ClassFinder\Collections\DefinitionCollection;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
 
 /**
@@ -20,69 +20,30 @@ class Finder
 {
     protected const DEFINITION_FILTER = 'definitionFilters';
     protected const FILE_FILTER = 'fileFilters';
-    /** @var DefinitionFilter[] */
-    protected array $definitionFilters = [];
-    /** @var DefinitionCollection */
-    protected DefinitionCollection $definitions;
-    /** @var SplFileInfo[] */
-    protected array $directories = [];
-    /** @var FileFilter[] */
-    protected array $fileFilters = [];
-    /** @var bool */
-    protected bool $recursive = true;
+
+    protected Collector $collector;
     /** @var SplFileInfo[] */
     protected array $traversed = [];
 
-    public function __construct()
-    {
-        $this->definitions = new DefinitionCollection();
-    }
-
     /**
-     * @param  SplFileInfo[]|string[]  $directories
-     * @return static
+     * @param  SplFileInfo[]       $directories
+     * @param  FileFilter[]|Closure[]        $fileFilters
+     * @param  DefinitionFilter[]|Closure[]  $definitionFilters
+     * @param  bool              $recursive
+     * @param  bool              $deferred
      */
-    public function addDirectories(array $directories): static
-    {
-        foreach ($directories as $directory) {
-            $this->addDirectory($directory);
+    public function __construct(
+        public readonly array $directories = [],
+        public readonly array $fileFilters = [],
+        public readonly array $definitionFilters = [],
+        public readonly bool $recursive = true,
+        public readonly bool $deferred = false,
+    ) {
+        $this->collector = new Collector();
+
+        if(!$this->deferred) {
+            $this->scan();
         }
-
-        return $this;
-    }
-
-    /**
-     * @param  SplFileInfo|string  $directory
-     * @return static
-     */
-    public function addDirectory(SplFileInfo|string $directory): static
-    {
-        if (is_string($directory)) {
-            $directory = new SplFileInfo($directory);
-        }
-
-        if ($directory->isDir()) {
-            $this->directories[] = $directory;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param  Filter  $filter
-     * @return static
-     */
-    public function addFilter(Filter $filter): static
-    {
-        if ($filter instanceof FileFilter) {
-            $this->fileFilters[] = $filter;
-        }
-
-        if ($filter instanceof DefinitionFilter) {
-            $this->definitionFilters[] = $filter;
-        }
-
-        return $this;
     }
 
     /**
@@ -98,17 +59,23 @@ class Finder
     }
 
     /**
-     * @return static
+     * @return Collector
      */
-    public function find(): static
+    public function getCollector(): Collector
+    {
+        return $this->collector;
+    }
+
+    /**
+     * @return void
+     */
+    public function scan(): void
     {
         foreach ($this->directories as $directory) {
             if ($directory->getFilename() !== '..') {
                 $this->traverseDirectory($directory);
             }
         }
-
-        return $this;
     }
 
     /**
@@ -117,14 +84,6 @@ class Finder
     public function getDefinitionFilters(): array
     {
         return $this->definitionFilters;
-    }
-
-    /**
-     * @return DefinitionCollection
-     */
-    public function getDefinitions(): DefinitionCollection
-    {
-        return $this->definitions;
     }
 
     /**
@@ -160,16 +119,6 @@ class Finder
     }
 
     /**
-     * @param  bool  $recursive
-     * @return static
-     */
-    public function setRecursive(bool $recursive): static
-    {
-        $this->recursive = $recursive;
-        return $this;
-    }
-
-    /**
      * @param  TypeDefinition|SplFileInfo  $item
      * @param  string                      $type
      * @return TypeDefinition|SplFileInfo|null
@@ -177,10 +126,16 @@ class Finder
     protected function filter(TypeDefinition|SplFileInfo $item, string $type): TypeDefinition|SplFileInfo|null
     {
         if ($type === self::DEFINITION_FILTER || $type === self::FILE_FILTER) {
-            /** @var Filter $filter */
+            /** @var Filter|Closure $filter */
             foreach ($this->$type as $filter) {
-                if (!$filter->filter($item)) {
-                    return null;
+                if($filter instanceof Filter) {
+                    if (!$filter->filter($item)) {
+                        return null;
+                    }
+                } else {
+                    if(!$filter($item)) {
+                        return null;
+                    }
                 }
             }
         }
@@ -221,7 +176,7 @@ class Finder
                 }
 
                 if ($item->isFile() && $this->filterFile($item)) {
-                    $this->definitions->push($this->definitionFromFile($item));
+                    $this->collector->collect($this->definitionFromFile($item));
                 }
             }
         }

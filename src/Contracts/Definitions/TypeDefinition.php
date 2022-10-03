@@ -41,4 +41,9 @@ interface TypeDefinition
      * @return Type
      */
     public function getType(): Type;
+
+    /**
+     * @return self[]
+     */
+    public function getRelatives(): array;
 }

@@ -12,6 +12,9 @@ use Envorra\ClassFinder\Helpers\NodeHelper;
 use Envorra\ClassFinder\Factories\TypeFactory;
 use Envorra\ClassFinder\Factories\ResolverFactory;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
+use Envorra\ClassFinder\Contracts\Definitions\Attributes\CanHaveParent;
+use Envorra\ClassFinder\Contracts\Definitions\Attributes\CanHaveTraits;
+use Envorra\ClassFinder\Contracts\Definitions\Attributes\CanHaveInterfaces;
 
 /**
  * Definition
@@ -136,4 +139,28 @@ class Definition implements TypeDefinition
             // ignore errors and continue.
         }
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRelatives(): array
+    {
+        $relatives = [];
+
+        if($this instanceof CanHaveInterfaces) {
+            $relatives = array_merge($relatives, $this->getInterfaces());
+        }
+
+        if($this instanceof CanHaveParent && $this->hasParent()) {
+            $relatives[] = $this->getParent();
+        }
+
+        if($this instanceof CanHaveTraits) {
+            $relatives = array_merge($relatives, $this->getTraits());
+        }
+
+        return $relatives;
+    }
+
+
 }

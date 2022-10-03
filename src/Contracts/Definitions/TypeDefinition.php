@@ -38,12 +38,12 @@ interface TypeDefinition
     public function getNamespace(): ?string;
 
     /**
-     * @return Type
-     */
-    public function getType(): Type;
-
-    /**
      * @return self[]
      */
     public function getRelatives(): array;
+
+    /**
+     * @return Type
+     */
+    public function getType(): Type;
 }

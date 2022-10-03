@@ -83,6 +83,28 @@ class Definition implements TypeDefinition
     /**
      * @inheritDoc
      */
+    public function getRelatives(): array
+    {
+        $relatives = [];
+
+        if ($this instanceof CanHaveInterfaces) {
+            $relatives = array_merge($relatives, $this->getInterfaces());
+        }
+
+        if ($this instanceof CanHaveParent && $this->hasParent()) {
+            $relatives[] = $this->getParent();
+        }
+
+        if ($this instanceof CanHaveTraits) {
+            $relatives = array_merge($relatives, $this->getTraits());
+        }
+
+        return $relatives;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getType(): Type
     {
         return $this->type;
@@ -138,28 +160,6 @@ class Definition implements TypeDefinition
         } catch (ReflectionException) {
             // ignore errors and continue.
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getRelatives(): array
-    {
-        $relatives = [];
-
-        if($this instanceof CanHaveInterfaces) {
-            $relatives = array_merge($relatives, $this->getInterfaces());
-        }
-
-        if($this instanceof CanHaveParent && $this->hasParent()) {
-            $relatives[] = $this->getParent();
-        }
-
-        if($this instanceof CanHaveTraits) {
-            $relatives = array_merge($relatives, $this->getTraits());
-        }
-
-        return $relatives;
     }
 
 

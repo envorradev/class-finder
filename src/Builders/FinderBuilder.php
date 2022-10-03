@@ -3,11 +3,11 @@
 namespace Envorra\ClassFinder\Builders;
 
 use Closure;
+use SplFileInfo;
 use Envorra\ClassFinder\Finder;
 use Envorra\ClassFinder\Contracts\Filter;
 use Envorra\ClassFinder\Contracts\FileFilter;
 use Envorra\ClassFinder\Contracts\DefinitionFilter;
-use SplFileInfo;
 
 /**
  * FinderBuilder
@@ -16,18 +16,37 @@ use SplFileInfo;
  */
 class FinderBuilder
 {
-    /** @var SplFileInfo[] */
-    protected array $directories = [];
-
-    /** @var FileFilter[]|Closure[] */
-    protected array $fileFilters = [];
-
+    protected bool $defer = false;
     /** @var DefinitionFilter[]|Closure[] */
     protected array $definitionFilters = [];
-
+    /** @var SplFileInfo[] */
+    protected array $directories = [];
+    /** @var FileFilter[]|Closure[] */
+    protected array $fileFilters = [];
     protected bool $recursive = true;
 
-    protected bool $defer = false;
+    /**
+     * @return Finder
+     */
+    public function build(): Finder
+    {
+        return new Finder(
+            directories: $this->directories,
+            fileFilters: $this->fileFilters,
+            definitionFilters: $this->definitionFilters,
+            recursive: $this->recursive,
+            deferred: $this->defer,
+        );
+    }
+
+    /**
+     * @return $this
+     */
+    public function defer(): static
+    {
+        $this->defer = true;
+        return $this;
+    }
 
     /**
      * @param  SplFileInfo[]|string[]  $directories
@@ -60,22 +79,11 @@ class FinderBuilder
     }
 
     /**
-     * @param  DefinitionFilter|Closure  $filter
      * @return $this
      */
-    public function filterDefinitionsUsing(DefinitionFilter|Closure $filter): static
+    public function dontDefer(): static
     {
-        $this->definitionFilters[] = $filter;
-        return $this;
-    }
-
-    /**
-     * @param  FileFilter|Closure  $filter
-     * @return $this
-     */
-    public function filterFilesUsing(FileFilter|Closure $filter): static
-    {
-        $this->fileFilters[] = $filter;
+        $this->defer = false;
         return $this;
     }
 
@@ -97,11 +105,22 @@ class FinderBuilder
     }
 
     /**
+     * @param  DefinitionFilter|Closure  $filter
      * @return $this
      */
-    public function recursive(): static
+    public function filterDefinitionsUsing(DefinitionFilter|Closure $filter): static
     {
-        $this->recursive = true;
+        $this->definitionFilters[] = $filter;
+        return $this;
+    }
+
+    /**
+     * @param  FileFilter|Closure  $filter
+     * @return $this
+     */
+    public function filterFilesUsing(FileFilter|Closure $filter): static
+    {
+        $this->fileFilters[] = $filter;
         return $this;
     }
 
@@ -114,26 +133,12 @@ class FinderBuilder
         return $this;
     }
 
-    public function build(): Finder
+    /**
+     * @return $this
+     */
+    public function recursive(): static
     {
-        return new Finder(
-            directories: $this->directories,
-            fileFilters: $this->fileFilters,
-            definitionFilters: $this->definitionFilters,
-            recursive: $this->recursive,
-            deferred: $this->defer,
-        );
-    }
-
-    public function defer(): static
-    {
-        $this->defer = true;
-        return $this;
-    }
-
-    public function dontDefer(): static
-    {
-        $this->defer = false;
+        $this->recursive = true;
         return $this;
     }
 }

@@ -5,6 +5,7 @@ namespace Envorra\ClassFinder;
 use Closure;
 use SplFileInfo;
 use DirectoryIterator;
+use Envorra\ClassFinder\Enums\Type;
 use Envorra\ClassFinder\Contracts\Filter;
 use Envorra\ClassFinder\Contracts\FileFilter;
 use Envorra\ClassFinder\Contracts\DefinitionFilter;
@@ -105,29 +106,28 @@ class Finder
 
     /**
      * @param  TypeDefinition|string  $class
-     * @return array
+     * @param  Type                   $type
+     * @return class-string[]
      */
-    public function getSubClassNames(TypeDefinition|string $class): array
+    public function getSubClassNames(TypeDefinition|string $class, Type $type = Type::TYPE_CLASS): array
     {
-        return $this->collector->getSubClassNames($class);
+        return array_map(
+            callback: fn(TypeDefinition $definition) => $definition->getFullyQualifiedName(),
+            array: $this->getSubClasses($class, $type)
+        );
     }
 
     /**
      * @param  TypeDefinition|string  $class
-     * @return array
+     * @param  Type                   $type
+     * @return TypeDefinition[]
      */
-    public function getSubClasses(TypeDefinition|string $class): array
+    public function getSubClasses(TypeDefinition|string $class, Type $type = Type::TYPE_CLASS): array
     {
-        $definitions = [];
-
-        /** @var TypeDefinition $definition */
-        foreach($this->collector->getSubClasses($class) as $definition) {
-            if($definition = $this->filter($definition)) {
-                $definitions[] = $definition;
-            }
-        }
-
-        return $definitions;
+        return array_filter(
+            array: $this->collector->getSubClasses($class, $type),
+            callback: fn(TypeDefinition $definition) => $this->filter($definition)
+        );
     }
 
     /**

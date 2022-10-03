@@ -111,6 +111,15 @@ class Definition implements TypeDefinition
     }
 
     /**
+     * @inheritDoc
+     */
+    public function isType(Type $type): bool
+    {
+        return $this->type->is($type);
+    }
+
+
+    /**
      * @return void
      */
     protected function applyDefaultValues(): void

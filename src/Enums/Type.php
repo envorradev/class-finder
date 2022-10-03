@@ -98,4 +98,13 @@ enum Type: int
     {
         return $this->value;
     }
+
+    /**
+     * @param  Type  $type
+     * @return bool
+     */
+    public function is(Type $type): bool
+    {
+        return ($this->getValue() & $type->getValue()) > 0;
+    }
 }

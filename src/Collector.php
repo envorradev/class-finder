@@ -2,6 +2,7 @@
 
 namespace Envorra\ClassFinder;
 
+use Envorra\ClassFinder\Enums\Type;
 use Envorra\ClassFinder\Contracts\Definitions\TypeDefinition;
 
 /**
@@ -58,28 +59,38 @@ class Collector
 
     /**
      * @param  TypeDefinition|string  $class
-     * @return array
+     * @param  Type                   $type
+     * @return class-string[]
      */
-    public function getSubClassNames(TypeDefinition|string $class): array
+    public function getSubClassNames(TypeDefinition|string $class, Type $type = Type::TYPE_ANY): array
+    {
+        return array_map(
+            callback: fn(TypeDefinition $definition) => $definition->getFullyQualifiedName(),
+            array: $this->getSubClasses($class, $type)
+        );
+    }
+
+    /**
+     * @param  TypeDefinition|string  $class
+     * @param  Type                   $type
+     * @return TypeDefinition[]
+     */
+    public function getSubClasses(TypeDefinition|string $class, Type $type = Type::TYPE_ANY): array
     {
         if (!is_string($class)) {
             $class = $class->getFullyQualifiedName();
         }
 
-        return $this->relativeMap[$class] ?? [];
-    }
-
-    /**
-     * @param  TypeDefinition|string  $class
-     * @return array
-     */
-    public function getSubClasses(TypeDefinition|string $class): array
-    {
         $definitions = [];
 
-        foreach ($this->getSubClassNames($class) as $className) {
-            if (array_key_exists($className, $this->definitions)) {
-                $definitions[] = $this->definitions[$className];
+        if (array_key_exists($class, $this->relativeMap)) {
+            foreach ($this->relativeMap[$class] as $className) {
+                if (array_key_exists($className, $this->definitions)) {
+                    $definition = $this->definitions[$className];
+                    if ($definition->isType($type)) {
+                        $definitions[] = $definition;
+                    }
+                }
             }
         }
 

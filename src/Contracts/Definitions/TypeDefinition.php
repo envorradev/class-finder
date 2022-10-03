@@ -46,4 +46,10 @@ interface TypeDefinition
      * @return Type
      */
     public function getType(): Type;
+
+    /**
+     * @param  Type  $type
+     * @return bool
+     */
+    public function isType(Type $type): bool;
 }
